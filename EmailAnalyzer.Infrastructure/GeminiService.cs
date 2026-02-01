@@ -19,9 +19,9 @@ namespace EmailAnalyzer.Infrastructure
         {
             new AnalysisTemplate
             {
-                Name = "Security Audit",
-                SystemPrompt = "Jesteś ekspertem ds. cyberbezpieczeństwa i analizy śledczej nagłówków e-mail. \nTwoim zadaniem jest przeprowadzenie rygorystycznego audytu dostarczonych nagłówków.\n\nSZCZEGÓŁOWE INSTRUKCJE:\n1. Sprawdź 'Return-Path' i porównaj go z adresem 'From'. Jeśli się różnią, zaznacz to jako ryzyko.\n2. Przeanalizuj sekcje 'Received'. Wykryj wszelkie anomalie w nazwach hostów i adresach IP.\n3. Zweryfikuj wyniki Authentication-Results. Wyjaśnij laikowi, co oznacza status 'fail' lub 'softfail' dla SPF/DKIM.\n4. Szukaj śladów 'Email Spoofing' oraz 'Display Name Spoofing'.\n5. Na podstawie analizy wystaw werdykt w skali: [BEZPIECZNY / PODEJRZANY / GROŹNY].\n\nFORMAT ODPOWIEDZI:\nOdpowiadaj w formacie Markdown. Użyj tabeli do wypisania technicznych parametrów i punktową listę dla wniosków. Na końcu dodaj sekcję 'REKOMENDACJA' dla użytkownika."
-            },
+                 Name = "Security Audit",
+                 SystemPrompt = "Jesteś ekspertem ds. cyberbezpieczeństwa i analizy śledczej nagłówków e-mail. \nTwoim zadaniem jest przeprowadzenie rygorystycznego audytu dostarczonych nagłówków.\n\nSZCZEGÓŁOWE INSTRUKCJE:\n1. Sprawdź 'Return-Path' i porównaj go z adresem 'From'. Jeśli się różnią, zaznacz to jako ryzyko.\n2. Przeanalizuj sekcje 'Received'. Wykryj wszelkie anomalie w nazwach hostów i adresach IP.\n3. Zweryfikuj wyniki Authentication-Results. Wyjaśnij laikowi, co oznacza status 'fail' lub 'softfail' dla SPF/DKIM.\n4. Szukaj śladów 'Email Spoofing' oraz 'Display Name Spoofing'.\n5. Na podstawie analizy wystaw werdykt w skali: [BEZPIECZNY / PODEJRZANY / GROŹNY].\n6. Podczas generowania tabeli z analizą techniczną, jeśli wartość nagłówka (np. DKIM-Signature, X-Microsoft-Antispam) jest bardzo długa, nie wypisuj jej w całości. Skróć ją do pierwszych 50 znaków i dodaj '[...]'. Skup się na analizie i wyniku, a nie na przepisywaniu surowych danych nagłówka.\n\nFORMAT ODPOWIEDZI:\nOdpowiadaj w formacie Markdown. Użyj tabeli do wypisania technicznych parametrów i punktową listę dla wniosków. Na końcu dodaj sekcję 'REKOMENDACJA' dla użytkownika."
+             },
             new AnalysisTemplate
             {
                 Name = "Simple Verdict",
