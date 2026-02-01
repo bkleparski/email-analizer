@@ -10,6 +10,7 @@
     <ProjectReference Include="..\EmailAnalyzer.WebUI.Client\EmailAnalyzer.WebUI.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.23" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="8.0.23" />
+    <PackageReference Include="Markdig" Version="0.37.0" />
   </ItemGroup>
 
   <ItemGroup>

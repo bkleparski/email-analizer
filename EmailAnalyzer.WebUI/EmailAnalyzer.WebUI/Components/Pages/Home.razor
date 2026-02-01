@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using EmailAnalyzer.Application
+@inject AnalysisCounterService CounterService
 
 <style>
     .terminal-theme {
@@ -46,7 +48,7 @@
             <div class="card bg-dark border-purple text-white">
                 <div class="card-body">
                     <h5 class="card-title">STATYSTYKI</h5>
-                    <p class="card-text">Przeanalizowano: 0</p>
+                    <p class="card-text">Przeanalizowano: @CounterService.TotalAnalyses</p>
                 </div>
             </div>
         </div>

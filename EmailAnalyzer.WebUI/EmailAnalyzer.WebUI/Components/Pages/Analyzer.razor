@@ -3,13 +3,15 @@
 @using System.Text
 @using EmailAnalyzer.Application
 @using EmailAnalyzer.Domain
+@using Markdig
 @inject IEmailParser EmailParser
 @inject IGeminiService GeminiService
 @inject IJSRuntime JSRuntime
+@inject AnalysisCounterService CounterService
 
 <div class="terminal">
     <div class="terminal-output" id="terminal-output">
-        @((MarkupString)outputText)
+        @ConvertMarkdownToHtml(outputText)
         @if (!IsLoading)
         {
             <span class="cursor" style="opacity: @cursorOpacity;">_</span>
@@ -43,6 +45,13 @@
     private int progress = 0;
     private byte[] fileContent = Array.Empty<byte>();
     private string inputFileName = string.Empty;
+
+    private MarkupString ConvertMarkdownToHtml(string markdown)
+    {
+        if (string.IsNullOrWhiteSpace(markdown)) return new MarkupString("");
+        var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+        return new MarkupString(Markdown.ToHtml(markdown, pipeline));
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -166,6 +175,7 @@
             await AnimateText("> OTRZYMANO ODPOWIEDŹ OD AI...");
             outputText += analysisResult.AiAnalysis; // Display as plain text
             analysisCompleted = true;
+            CounterService.Increment();
             StateHasChanged();
         }
         catch (Exception ex)
@@ -231,6 +241,28 @@
 
     .terminal-output p, .terminal-output li, .terminal-output pre {
         color: #e0b0ff !important; /* Light purple */
+    }
+
+    .terminal-output table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+        color: #e0b0ff;
+    }
+
+    .terminal-output th, .terminal-output td {
+        border: 1px solid #6f42c1;
+        padding: 8px;
+        text-align: left;
+    }
+
+    .terminal-output th {
+        background-color: rgba(111, 66, 193, 0.3);
+    }
+
+    .terminal-output h1, .terminal-output h2 {
+        color: #b19cd9;
+        border-bottom: 1px solid #6f42c1;
     }
 
     .terminal textarea, .terminal select, .terminal button {

@@ -14,6 +14,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IEmailParser, EmailParser>();
 builder.Services.AddScoped<IGeminiService, GeminiService>();
+builder.Services.AddSingleton<AnalysisCounterService>();
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo("/app/keys"));
