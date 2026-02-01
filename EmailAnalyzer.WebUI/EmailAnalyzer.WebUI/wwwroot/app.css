@@ -50,3 +50,8 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+.top-row {
+    background: none !important;
+    background-color: rgba(0,0,0,0) !important;
+}
