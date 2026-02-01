@@ -1,0 +1,17 @@
+# Visual Studio cache files
+.vs/
+.vscode/
+
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.user
+
+# Configuration files
+appsettings.json
+appsettings.Development.json
+
+# Docker keys
+keys/

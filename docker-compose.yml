@@ -1,0 +1,16 @@
+services:
+  email-analyzer-app:
+    build: .
+    container_name: email-analyzer-ai
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      # Zmienna nadpisuje wartość w appsettings.json (używamy podwójnego podkreślnika __)
+      - GeminiConfig__ApiKey=GEMINI_API_KEY_REMOVED
+      # Ustawienie portów, na których nasłuchuje Kestrel w kontenerze
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "5050:80"
+    volumes:
+      # Wolumen dla Data Protection - zapobiega błędom sesji/antiforgery po restarcie
+      - ./keys:/app/keys
