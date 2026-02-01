@@ -1,0 +1,262 @@
+@page "/analyzer"
+@rendermode InteractiveServer
+@using System.Text
+@using EmailAnalyzer.Application
+@using EmailAnalyzer.Domain
+@inject IEmailParser EmailParser
+@inject IGeminiService GeminiService
+@inject IJSRuntime JSRuntime
+
+<div class="terminal">
+    <div class="terminal-output" id="terminal-output">
+        @((MarkupString)outputText)
+        @if (!IsLoading)
+        {
+            <span class="cursor" style="opacity: @cursorOpacity;">_</span>
+        }
+    </div>
+    <select @bind="selectedTemplateName">
+        @foreach (var template in GeminiService.DefaultTemplates)
+        {
+            <option value="@template.Name">@template.Name</option>
+        }
+    </select>
+    <button @onclick="Analyze" disabled="@IsLoading">Analizuj</button>
+    <InputFile OnChange="HandleFileSelected" disabled="@IsLoading" accept=".eml" />
+    <button @onclick="ClearConsole" disabled="@IsLoading">Wyczyść</button>
+    @if (analysisCompleted)
+    {
+        <button @onclick="CopyReportToClipboard">[ KOPIUJ RAPORT ]</button>
+    }
+</div>
+
+@code {
+    private string outputText = "> Wgraj plik .eml...";
+    private double cursorOpacity = 1;
+    private System.Threading.Timer? cursorTimer;
+    private string selectedTemplateName = string.Empty;
+    private bool IsLoading = false;
+    private bool analysisCompleted = false;
+    private AnalysisResult? analysisResult;
+    private char[] spinner = { '|', '/', '-', '\\' };
+    private int spinnerIndex = 0;
+    private int progress = 0;
+    private byte[] fileContent = Array.Empty<byte>();
+    private string inputFileName = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                window.scrollToBottom = () => {
+                    const terminal = document.getElementById('terminal-output');
+                    if (terminal) {
+                        terminal.scrollTop = terminal.scrollHeight;
+                    }
+                };
+
+                window.copyToClipboard = (text) => {
+                    navigator.clipboard.writeText(text);
+                };
+            ");
+        }
+    }
+
+    private async Task CopyReportToClipboard()
+    {
+        if(analysisResult is not null)
+        {
+            await JSRuntime.InvokeVoidAsync("copyToClipboard", analysisResult.AiAnalysis);
+        }
+    }
+
+    private async Task ScrollToBottom()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToBottom");
+    }
+
+    protected override void OnInitialized()
+    {
+        cursorTimer = new Timer(BlinkCursor, null, 0, 500);
+        selectedTemplateName = GeminiService.DefaultTemplates.First().Name;
+    }
+
+    private async void BlinkCursor(object? state)
+    {
+        if (!IsLoading)
+        {
+            cursorOpacity = cursorOpacity == 1 ? 0 : 1;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task ClearConsole()
+    {
+        Console.WriteLine("Clear console button clicked.");
+        outputText = ">";
+        fileContent = Array.Empty<byte>();
+        analysisCompleted = false;
+        StateHasChanged();
+        await ScrollToBottom();
+    }
+
+    private async Task Analyze()
+    {
+        Console.WriteLine("Analyze button clicked.");
+        if (fileContent.Length == 0)
+        {
+            outputText = "> Proszę wgrać plik .eml.";
+            return;
+        }
+
+        IsLoading = true;
+        analysisCompleted = false;
+        analysisResult = null;
+        outputText = string.Empty;
+        progress = 0;
+
+        try
+        {
+            var analysisTask = Task.Run(async () =>
+            {
+                var headers = string.Empty;
+                if (fileContent.Length > 0)
+                {
+                    Console.WriteLine($"Analizuję plik o rozmiarze: {fileContent.Length} bajtów");
+                    var tempPath = Path.GetTempFileName();
+                    await File.WriteAllBytesAsync(tempPath, fileContent);
+                    headers = EmailParser.ParseHeaders(tempPath);
+                    File.Delete(tempPath);
+                }
+
+                var selectedTemplate = GeminiService.DefaultTemplates.First(t => t.Name == selectedTemplateName);
+                var aiAnalysis = await GeminiService.AnalyzeHeaders(headers, selectedTemplate);
+
+                return new AnalysisResult
+                {
+                    FileName = inputFileName ?? "pasted-content",
+                    AnalysisDate = DateTime.Now,
+                    From = "N/A", // TODO: Extract from headers
+                    Subject = "N/A", // TODO: Extract from headers
+                    AiAnalysis = aiAnalysis
+                };
+            });
+
+            while (!analysisTask.IsCompleted)
+            {
+                spinnerIndex = (spinnerIndex + 1) % spinner.Length;
+                progress = Math.Min(progress + 5, 99);
+                var progressBar = "[" + new string('#', progress / 10) + new string('.', 10 - progress / 10) + "]";
+                outputText = $"> Analizowanie... {spinner[spinnerIndex]} {progressBar} {progress}%";
+                StateHasChanged();
+                await ScrollToBottom();
+                await Task.Delay(200);
+            }
+
+            IsLoading = false;
+            progress = 100;
+            var finalProgressBar = "[" + new string('#', 10) + "]";
+            outputText = $"> Analizowanie... {finalProgressBar} {progress}%<br/>";
+            StateHasChanged();
+            await ScrollToBottom();
+
+            analysisResult = await analysisTask;
+
+            await AnimateText("> OTRZYMANO ODPOWIEDŹ OD AI...");
+            outputText += analysisResult.AiAnalysis; // Display as plain text
+            analysisCompleted = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            outputText += $"<br/><span style='color: red'>> !! SYSTEM ERROR: KERNEL PANIC !!</span><br/>";
+            outputText += $"<span style='color: red'>> REASON: {ex.Message}</span><br/>";
+            outputText += "<span style='color: red'>> Proszę sprawdzić klucz API w pliku konfiguracyjnym.</span><br/>";
+            StateHasChanged();
+            await ScrollToBottom();
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task AnimateText(string text)
+    {
+        foreach (char c in text)
+        {
+            outputText += c;
+            StateHasChanged();
+            await ScrollToBottom();
+            await Task.Delay(10); // Sped up animation
+        }
+        outputText += "<br/>";
+        StateHasChanged();
+        await ScrollToBottom();
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        inputFileName = file.Name;
+        using (var memoryStream = new MemoryStream())
+        {
+            await file.OpenReadStream().CopyToAsync(memoryStream);
+            fileContent = memoryStream.ToArray();
+        }
+    }
+
+    public void Dispose()
+    {
+        cursorTimer?.Dispose();
+    }
+}
+
+<style>
+    .terminal {
+        background-color: black;
+        color: #e0d0ff; /* Light purple */
+        font-family: 'Courier New', Courier, monospace;
+        padding: 20px;
+        border-radius: 5px;
+        height: 500px;
+        overflow-y: auto;
+    }
+
+    .terminal-output {
+        white-space: pre-wrap;
+        color: #e0b0ff !important; /* Light purple */
+    }
+
+    .terminal-output p, .terminal-output li, .terminal-output pre {
+        color: #e0b0ff !important; /* Light purple */
+    }
+
+    .terminal textarea, .terminal select, .terminal button {
+        background-color: #6f42c1; /* Purple background */
+        color: white;
+        font-family: 'Courier New', Courier, monospace;
+        border: 1px solid #6f42c1;
+        margin: 5px;
+        box-shadow: 0 0 5px #6f42c1, 0 0 10px #6f42c1, 0 0 15px #6f42c1; /* Neon purple glow */
+    }
+
+    .terminal textarea {
+        width: 100%;
+        resize: none;
+    }
+
+    .cursor {
+        animation: blink 1s step-end infinite;
+    }
+
+    @@keyframes blink {
+        from, to {
+            color: transparent;
+        }
+        50% {
+            color: #e0d0ff; /* Light purple */
+        }
+    }
+</style>
