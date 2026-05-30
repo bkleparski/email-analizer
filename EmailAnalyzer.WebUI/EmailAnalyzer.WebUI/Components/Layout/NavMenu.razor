@@ -1,3 +1,5 @@
+@inject IJSRuntime JS
+
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid nav-brand-wrap">
         <a class="navbar-brand nav-brand gradient-text" href="">⬡ EBARTNET</a>
@@ -11,21 +13,39 @@
 
         <div class="nav-item px-3">
             <NavLink class="nav-link nav-cosmic" href="" Match="NavLinkMatch.All">
-                <span class="nav-icon">⬡</span> Dashboard
+                <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Dashboard
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link nav-cosmic" href="analyzer">
-                <span class="nav-icon">◈</span> Analizator AI
+                <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                Analizator AI
             </NavLink>
         </div>
 
         <div class="nav-divider"></div>
 
         <div class="nav-item px-3">
+            <button class="nav-link nav-cosmic nav-theme-btn" @onclick="ToggleTheme">
+                @if (_isDark)
+                {
+                    <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <span>Jasny motyw</span>
+                }
+                else
+                {
+                    <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <span>Ciemny motyw</span>
+                }
+            </button>
+        </div>
+
+        <div class="nav-item px-3">
             <a class="nav-link nav-cosmic nav-logout" href="/account/logout">
-                <span class="nav-icon">⏻</span> Wyloguj
+                <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Wyloguj
             </a>
         </div>
 
@@ -36,55 +56,86 @@
     .nav-brand {
         font-family: 'Inter', sans-serif !important;
         font-weight: 700 !important;
-        font-size: 1.1rem !important;
-        letter-spacing: 0.12em !important;
+        font-size: 1.05rem !important;
+        letter-spacing: .12em !important;
     }
 
     .nav-cosmic {
         font-family: 'Inter', sans-serif !important;
-        font-size: 0.85rem !important;
+        font-size: .84rem !important;
         font-weight: 500 !important;
         color: #c4cdd8 !important;
         display: flex !important;
         align-items: center !important;
-        gap: 0.6rem !important;
+        gap: .55rem !important;
         border-radius: 8px !important;
-        transition: color 0.2s, background 0.2s, box-shadow 0.2s !important;
-        letter-spacing: 0.02em !important;
+        transition: color .2s, background .2s, box-shadow .2s !important;
+        letter-spacing: .02em !important;
     }
 
     .nav-cosmic:hover {
         color: #f1f5f9 !important;
-        background: rgba(124, 58, 237, 0.15) !important;
-        box-shadow: inset 0 0 0 1px rgba(192, 132, 252, 0.25) !important;
+        background: rgba(124,58,237,.15) !important;
+        box-shadow: inset 0 0 0 1px rgba(192,132,252,.25) !important;
         text-decoration: none !important;
     }
 
     .nav-cosmic.active {
         color: #fff !important;
-        background: rgba(124, 58, 237, 0.25) !important;
-        box-shadow: inset 0 0 0 1px rgba(192, 132, 252, 0.5),
-                    0 0 14px rgba(124, 58, 237, 0.25) !important;
+        background: rgba(124,58,237,.25) !important;
+        box-shadow: inset 0 0 0 1px rgba(192,132,252,.5),
+                    0 0 14px rgba(124,58,237,.25) !important;
     }
 
-    .nav-icon {
-        font-size: 1rem;
-        opacity: 0.9;
+    .nav-icon { flex-shrink: 0; opacity: .85; }
+
+    .nav-theme-btn {
+        width: 100%;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        padding: 0.75rem 1rem !important;
     }
 
     .nav-divider {
         height: 1px;
-        background: rgba(124, 58, 237, 0.25);
-        margin: 0.5rem 1rem;
+        background: rgba(124,58,237,.25);
+        margin: .5rem 1rem;
     }
 
-    .nav-logout {
-        color: #94a3b8 !important;
-    }
-
+    .nav-logout { color: #94a3b8 !important; }
     .nav-logout:hover {
         color: #fca5a5 !important;
-        background: rgba(244, 63, 94, 0.1) !important;
-        box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.25) !important;
+        background: rgba(244,63,94,.1) !important;
+        box-shadow: inset 0 0 0 1px rgba(244,63,94,.25) !important;
     }
+
+    /* Light mode overrides */
+    :global(html.light-mode) .nav-cosmic { color: #374151 !important; }
+    :global(html.light-mode) .nav-cosmic:hover { color: #1e1b4b !important; background: rgba(124,58,237,.08) !important; }
+    :global(html.light-mode) .nav-cosmic.active { color: #7c3aed !important; background: rgba(124,58,237,.12) !important; box-shadow: inset 0 0 0 1px rgba(124,58,237,.3) !important; }
+    :global(html.light-mode) .nav-logout { color: #9ca3af !important; }
+    :global(html.light-mode) .nav-logout:hover { color: #dc2626 !important; background: rgba(220,38,38,.08) !important; }
+    :global(html.light-mode) .nav-divider { background: rgba(124,58,237,.15); }
 </style>
+
+@code {
+    private bool _isDark = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var theme = await JS.InvokeAsync<string>("getTheme");
+            _isDark = theme != "light";
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        var newTheme = await JS.InvokeAsync<string>("toggleTheme");
+        _isDark = newTheme != "light";
+    }
+}
