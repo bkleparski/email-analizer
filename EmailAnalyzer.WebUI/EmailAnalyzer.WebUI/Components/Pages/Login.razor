@@ -1,0 +1,130 @@
+@page "/login"
+
+<PageTitle>Logowanie — EBARTNET Security</PageTitle>
+
+<style>
+    .login-wrapper {
+        background-color: #1a0c2e;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Courier New', Courier, monospace;
+    }
+
+    .login-box {
+        border: 1px solid #6f42c1;
+        padding: 40px;
+        width: 100%;
+        max-width: 420px;
+        background-color: #0d0019;
+        box-shadow: 0 0 30px rgba(111, 66, 193, 0.4);
+    }
+
+    .login-title {
+        color: #e0d0ff;
+        text-align: center;
+        margin-bottom: 6px;
+        font-size: 1.2rem;
+        letter-spacing: 3px;
+    }
+
+    .login-subtitle {
+        color: #6f42c1;
+        text-align: center;
+        margin-bottom: 32px;
+        font-size: 0.78rem;
+        letter-spacing: 1px;
+    }
+
+    .login-field {
+        margin-bottom: 20px;
+    }
+
+    .login-field label {
+        display: block;
+        color: #b19cd9;
+        margin-bottom: 6px;
+        font-size: 0.82rem;
+    }
+
+    .login-field input {
+        width: 100%;
+        background-color: #1a0c2e;
+        color: #e0d0ff;
+        border: 1px solid #6f42c1;
+        padding: 10px 12px;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        box-sizing: border-box;
+        outline: none;
+    }
+
+    .login-field input:focus {
+        border-color: #9b59b6;
+        box-shadow: 0 0 6px rgba(111, 66, 193, 0.5);
+    }
+
+    .btn-login {
+        width: 100%;
+        background-color: #6f42c1;
+        color: white;
+        border: none;
+        padding: 12px;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.88rem;
+        cursor: pointer;
+        letter-spacing: 3px;
+        margin-top: 8px;
+        transition: background-color 0.2s;
+    }
+
+    .btn-login:hover {
+        background-color: #9b59b6;
+        box-shadow: 0 0 12px rgba(111, 66, 193, 0.6);
+    }
+
+    .error-msg {
+        color: #ff6b6b;
+        text-align: center;
+        margin-bottom: 18px;
+        font-size: 0.82rem;
+        border: 1px solid #ff4444;
+        padding: 8px;
+    }
+</style>
+
+<div class="login-wrapper">
+    <div class="login-box">
+        <div class="login-title">[ EBARTNET ]</div>
+        <div class="login-subtitle">EMAIL SECURITY ANALYZER — DOSTĘP AUTORYZOWANY</div>
+
+        @if (ShowError)
+        {
+            <div class="error-msg">&gt; BŁĄD: Nieprawidłowy login lub hasło.</div>
+        }
+
+        <form method="post" action="/account/login">
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+            <div class="login-field">
+                <label>&gt; LOGIN:</label>
+                <input type="text" name="username" autocomplete="username" autofocus required />
+            </div>
+            <div class="login-field">
+                <label>&gt; HASŁO:</label>
+                <input type="password" name="password" autocomplete="current-password" required />
+            </div>
+            <button type="submit" class="btn-login">[ ZALOGUJ ]</button>
+        </form>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery(Name = "error")]
+    private string? Error { get; set; }
+
+    private bool ShowError => Error == "1";
+}

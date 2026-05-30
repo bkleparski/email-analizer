@@ -1,9 +1,11 @@
 @page "/analyzer"
+@attribute [Authorize]
 @rendermode InteractiveServer
 @using System.Text
 @using EmailAnalyzer.Application
 @using EmailAnalyzer.Domain
 @using Markdig
+@using Microsoft.AspNetCore.Authorization
 @inject IEmailParser EmailParser
 @inject IGeminiService GeminiService
 @inject IJSRuntime JSRuntime
@@ -25,6 +27,12 @@
     </select>
     <button @onclick="Analyze" disabled="@IsLoading">Analizuj</button>
     <InputFile OnChange="HandleFileSelected" disabled="@IsLoading" accept=".eml" />
+    @if (!string.IsNullOrEmpty(loadedFileName))
+    {
+        <span style="color: #28a745; font-family: 'Courier New', monospace; font-size: 0.85rem; margin-left: 8px;">
+            ✓ @loadedFileName
+        </span>
+    }
     <button @onclick="ClearConsole" disabled="@IsLoading">Wyczyść</button>
     @if (analysisCompleted)
     {
@@ -33,6 +41,9 @@
 </div>
 
 @code {
+    private static readonly MarkdownPipeline MarkdownPipeline =
+        new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+
     private string outputText = "> Wgraj plik .eml...";
     private double cursorOpacity = 1;
     private System.Threading.Timer? cursorTimer;
@@ -44,45 +55,12 @@
     private int spinnerIndex = 0;
     private int progress = 0;
     private byte[] fileContent = Array.Empty<byte>();
-    private string inputFileName = string.Empty;
+    private string loadedFileName = string.Empty;
 
     private MarkupString ConvertMarkdownToHtml(string markdown)
     {
         if (string.IsNullOrWhiteSpace(markdown)) return new MarkupString("");
-        var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
-        return new MarkupString(Markdown.ToHtml(markdown, pipeline));
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await JSRuntime.InvokeVoidAsync("eval", @"
-                window.scrollToBottom = () => {
-                    const terminal = document.getElementById('terminal-output');
-                    if (terminal) {
-                        terminal.scrollTop = terminal.scrollHeight;
-                    }
-                };
-
-                window.copyToClipboard = (text) => {
-                    navigator.clipboard.writeText(text);
-                };
-            ");
-        }
-    }
-
-    private async Task CopyReportToClipboard()
-    {
-        if(analysisResult is not null)
-        {
-            await JSRuntime.InvokeVoidAsync("copyToClipboard", analysisResult.AiAnalysis);
-        }
-    }
-
-    private async Task ScrollToBottom()
-    {
-        await JSRuntime.InvokeVoidAsync("scrollToBottom");
+        return new MarkupString(Markdown.ToHtml(markdown, MarkdownPipeline));
     }
 
     protected override void OnInitialized()
@@ -91,20 +69,31 @@
         selectedTemplateName = GeminiService.DefaultTemplates.First().Name;
     }
 
-    private async void BlinkCursor(object? state)
+    private void BlinkCursor(object? state)
     {
         if (!IsLoading)
         {
             cursorOpacity = cursorOpacity == 1 ? 0 : 1;
-            await InvokeAsync(StateHasChanged);
+            InvokeAsync(StateHasChanged);
         }
+    }
+
+    private async Task CopyReportToClipboard()
+    {
+        if (analysisResult is not null)
+            await JSRuntime.InvokeVoidAsync("copyToClipboard", analysisResult.AiAnalysis);
+    }
+
+    private async Task ScrollToBottom()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToBottom");
     }
 
     private async Task ClearConsole()
     {
-        Console.WriteLine("Clear console button clicked.");
         outputText = ">";
         fileContent = Array.Empty<byte>();
+        loadedFileName = string.Empty;
         analysisCompleted = false;
         StateHasChanged();
         await ScrollToBottom();
@@ -112,7 +101,6 @@
 
     private async Task Analyze()
     {
-        Console.WriteLine("Analyze button clicked.");
         if (fileContent.Length == 0)
         {
             outputText = "> Proszę wgrać plik .eml.";
@@ -127,29 +115,16 @@
 
         try
         {
+            EmailRecord? emailRecord = null;
+            string? aiAnalysis = null;
+
             var analysisTask = Task.Run(async () =>
             {
-                var headers = string.Empty;
-                if (fileContent.Length > 0)
-                {
-                    Console.WriteLine($"Analizuję plik o rozmiarze: {fileContent.Length} bajtów");
-                    var tempPath = Path.GetTempFileName();
-                    await File.WriteAllBytesAsync(tempPath, fileContent);
-                    headers = EmailParser.ParseHeaders(tempPath);
-                    File.Delete(tempPath);
-                }
+                using var stream = new MemoryStream(fileContent);
+                emailRecord = EmailParser.Parse(stream);
 
                 var selectedTemplate = GeminiService.DefaultTemplates.First(t => t.Name == selectedTemplateName);
-                var aiAnalysis = await GeminiService.AnalyzeHeaders(headers, selectedTemplate);
-
-                return new AnalysisResult
-                {
-                    FileName = inputFileName ?? "pasted-content",
-                    AnalysisDate = DateTime.Now,
-                    From = "N/A", // TODO: Extract from headers
-                    Subject = "N/A", // TODO: Extract from headers
-                    AiAnalysis = aiAnalysis
-                };
+                aiAnalysis = await GeminiService.AnalyzeHeaders(emailRecord.RawHeaders, selectedTemplate);
             });
 
             while (!analysisTask.IsCompleted)
@@ -163,17 +138,25 @@
                 await Task.Delay(200);
             }
 
+            await analysisTask; // propaguje wyjątek jeśli był
+
             IsLoading = false;
             progress = 100;
-            var finalProgressBar = "[" + new string('#', 10) + "]";
-            outputText = $"> Analizowanie... {finalProgressBar} {progress}%<br/>";
+            outputText = $"> Analizowanie... [##########] 100%<br/>";
             StateHasChanged();
             await ScrollToBottom();
 
-            analysisResult = await analysisTask;
+            analysisResult = new AnalysisResult
+            {
+                FileName = loadedFileName,
+                AnalysisDate = DateTime.Now,
+                From = emailRecord!.From,
+                Subject = emailRecord.Subject,
+                AiAnalysis = aiAnalysis!
+            };
 
             await AnimateText("> OTRZYMANO ODPOWIEDŹ OD AI...");
-            outputText += analysisResult.AiAnalysis; // Display as plain text
+            outputText += analysisResult.AiAnalysis;
             analysisCompleted = true;
             CounterService.Increment();
             StateHasChanged();
@@ -199,7 +182,7 @@
             outputText += c;
             StateHasChanged();
             await ScrollToBottom();
-            await Task.Delay(10); // Sped up animation
+            await Task.Delay(10);
         }
         outputText += "<br/>";
         StateHasChanged();
@@ -209,12 +192,16 @@
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
         var file = e.File;
-        inputFileName = file.Name;
-        using (var memoryStream = new MemoryStream())
+        if (file.Size > 10 * 1024 * 1024)
         {
-            await file.OpenReadStream().CopyToAsync(memoryStream);
-            fileContent = memoryStream.ToArray();
+            outputText = "> Błąd: Plik jest za duży (max 10 MB).";
+            return;
         }
+
+        using var memoryStream = new MemoryStream();
+        await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(memoryStream);
+        fileContent = memoryStream.ToArray();
+        loadedFileName = file.Name;
     }
 
     public void Dispose()
@@ -226,7 +213,7 @@
 <style>
     .terminal {
         background-color: black;
-        color: #e0d0ff; /* Light purple */
+        color: #e0d0ff;
         font-family: 'Courier New', Courier, monospace;
         padding: 20px;
         border-radius: 5px;
@@ -236,11 +223,11 @@
 
     .terminal-output {
         white-space: pre-wrap;
-        color: #e0b0ff !important; /* Light purple */
+        color: #e0b0ff !important;
     }
 
     .terminal-output p, .terminal-output li, .terminal-output pre {
-        color: #e0b0ff !important; /* Light purple */
+        color: #e0b0ff !important;
     }
 
     .terminal-output table {
@@ -266,12 +253,12 @@
     }
 
     .terminal textarea, .terminal select, .terminal button {
-        background-color: #6f42c1; /* Purple background */
+        background-color: #6f42c1;
         color: white;
         font-family: 'Courier New', Courier, monospace;
         border: 1px solid #6f42c1;
         margin: 5px;
-        box-shadow: 0 0 5px #6f42c1, 0 0 10px #6f42c1, 0 0 15px #6f42c1; /* Neon purple glow */
+        box-shadow: 0 0 5px #6f42c1, 0 0 10px #6f42c1, 0 0 15px #6f42c1;
     }
 
     .terminal textarea {
@@ -284,11 +271,7 @@
     }
 
     @@keyframes blink {
-        from, to {
-            color: transparent;
-        }
-        50% {
-            color: #e0d0ff; /* Light purple */
-        }
+        from, to { color: transparent; }
+        50% { color: #e0d0ff; }
     }
 </style>

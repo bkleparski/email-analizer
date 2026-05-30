@@ -15,3 +15,6 @@ appsettings.Development.json
 
 # Docker keys
 keys/
+
+# Sekrety — nigdy nie commituj
+.env

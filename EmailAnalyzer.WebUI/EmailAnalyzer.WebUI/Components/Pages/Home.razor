@@ -1,6 +1,9 @@
-﻿@page "/"
+@page "/"
+@attribute [Authorize]
 @using EmailAnalyzer.Application
+@using Microsoft.AspNetCore.Authorization
 @inject AnalysisCounterService CounterService
+@implements IDisposable
 
 <style>
     .terminal-theme {
@@ -40,7 +43,7 @@
             <div class="card bg-dark border-purple text-white">
                 <div class="card-body">
                     <h5 class="card-title">MODEL AI</h5>
-                    <p class="card-text">Gemini 1.5 Flash (aktywny)</p>
+                    <p class="card-text">Gemini 2.5 Flash (aktywny)</p>
                 </div>
             </div>
         </div>
@@ -58,3 +61,20 @@
         <a href="/analyzer" class="btn btn-outline-primary btn-lg p-5">URUCHOM TERMINAL ANALITYCZNY</a>
     </div>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        CounterService.OnChanged += OnCounterChanged;
+    }
+
+    private void OnCounterChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        CounterService.OnChanged -= OnCounterChanged;
+    }
+}

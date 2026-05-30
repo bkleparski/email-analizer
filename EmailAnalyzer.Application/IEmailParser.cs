@@ -1,7 +1,9 @@
+using EmailAnalyzer.Domain;
+
 namespace EmailAnalyzer.Application
 {
     public interface IEmailParser
     {
-        string ParseHeaders(string filePath);
+        EmailRecord Parse(Stream stream);
     }
 }
