@@ -302,121 +302,127 @@ h1:focus { outline: none; }
    MARKDOWN w bąbelku AI — GLOBALNE (Blazor MarkupString nie
    dostaje scope-attribute, więc scoped CSS tu nie trafia)
 ═══════════════════════════════════════════════════════════════ */
+/* ── Bąbelek AI: bazowe style ── */
 .chat-assistant-bubble {
-  background: rgba(14, 6, 40, 0.75);
-  border: 1px solid rgba(124, 58, 237, 0.25);
-  border-radius: 4px 16px 16px 16px;
-  padding: .9rem 1.25rem;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: .86rem;
-  color: #e2e8f0;
-  line-height: 1.72;
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: break-word;
+  background: rgba(14, 6, 40, 0.75) !important;
+  border: 1px solid rgba(124, 58, 237, 0.25) !important;
+  border-radius: 4px 16px 16px 16px !important;
+  padding: .9rem 1.25rem !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: .86rem !important;
+  color: #e2e8f0 !important;
+  line-height: 1.72 !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow-wrap: break-word !important;
 }
 
-.chat-assistant-bubble p  { margin: .3rem 0; color: #e2e8f0; }
+/* ── Paragrafy i listy ── */
+.chat-assistant-bubble p   { margin: .3rem 0 !important; color: #e2e8f0 !important; }
 .chat-assistant-bubble ul,
-.chat-assistant-bubble ol { padding-left: 1.3rem; margin: .4rem 0; }
-.chat-assistant-bubble li { margin: .2rem 0; color: #cbd5e1; }
+.chat-assistant-bubble ol  { padding-left: 1.3rem !important; margin: .4rem 0 !important; }
+.chat-assistant-bubble li  { margin: .2rem 0 !important; color: #cbd5e1 !important; }
 
+/* ── Nagłówki ── */
 .chat-assistant-bubble h1,
 .chat-assistant-bubble h2,
 .chat-assistant-bubble h3 {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  color: #c084fc;
-  border-bottom: 1px solid rgba(124, 58, 237, 0.3);
-  padding-bottom: .3rem;
-  margin: 1rem 0 .5rem;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
+  color: #c084fc !important;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.3) !important;
+  padding-bottom: .3rem !important;
+  margin: 1rem 0 .5rem !important;
+  background: none !important;
 }
 
-.chat-assistant-bubble h1 { font-size: 1.1rem; }
-.chat-assistant-bubble h2 { font-size: 1rem; }
-.chat-assistant-bubble h3 { font-size: .92rem; border-bottom: none; }
+.chat-assistant-bubble h1 { font-size: 1.1rem !important; }
+.chat-assistant-bubble h2 { font-size: 1rem !important; }
+.chat-assistant-bubble h3 { font-size: .92rem !important; border-bottom: none !important; }
 
+/* ── Tabele ── */
 .chat-assistant-bubble table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: .75rem 0;
-  font-size: .81rem;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: .75rem 0 !important;
+  font-size: .81rem !important;
+  color: #cbd5e1 !important;
 }
 
 .chat-assistant-bubble th,
 .chat-assistant-bubble td {
-  border: 1px solid rgba(124, 58, 237, 0.3);
-  padding: 6px 10px;
-  text-align: left;
-  color: #cbd5e1;
-  vertical-align: top;
+  border: 1px solid rgba(124, 58, 237, 0.35) !important;
+  padding: 6px 10px !important;
+  text-align: left !important;
+  color: #cbd5e1 !important;
+  vertical-align: top !important;
+  background-color: transparent !important;
 }
 
 .chat-assistant-bubble th {
-  background: rgba(124, 58, 237, 0.15);
-  color: #a5b4fc;
-  font-weight: 600;
-  white-space: nowrap;
+  background: rgba(124, 58, 237, 0.18) !important;
+  color: #a5b4fc !important;
+  font-weight: 600 !important;
 }
 
+/* ── Inline elementy ── */
 .chat-assistant-bubble strong,
-.chat-assistant-bubble b { color: #67e8f9; font-weight: 600; }
-
+.chat-assistant-bubble b   { color: #67e8f9 !important; font-weight: 600 !important; }
 .chat-assistant-bubble em,
-.chat-assistant-bubble i  { color: #a5b4fc; }
+.chat-assistant-bubble i   { color: #a5b4fc !important; }
 
 .chat-assistant-bubble code {
-  background: rgba(124, 58, 237, 0.2);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: .83em;
-  color: #c4b5fd;
+  background: rgba(124, 58, 237, 0.22) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: .83em !important;
+  color: #c4b5fd !important;
 }
 
 .chat-assistant-bubble pre {
-  background: rgba(6, 1, 26, 0.8);
-  border: 1px solid rgba(124, 58, 237, 0.25);
-  border-radius: 6px;
-  padding: .75rem 1rem;
-  overflow-x: auto;
-  margin: .5rem 0;
+  background: rgba(6, 1, 26, 0.85) !important;
+  border: 1px solid rgba(124, 58, 237, 0.25) !important;
+  border-radius: 6px !important;
+  padding: .75rem 1rem !important;
+  overflow-x: auto !important;
+  margin: .5rem 0 !important;
 }
 
 .chat-assistant-bubble pre code {
-  background: none;
-  padding: 0;
-  font-size: .82rem;
-  color: #e2e8f0;
+  background: none !important;
+  padding: 0 !important;
+  font-size: .82rem !important;
+  color: #e2e8f0 !important;
 }
 
 .chat-assistant-bubble blockquote {
-  border-left: 3px solid #7c3aed;
-  padding-left: .8rem;
-  color: #94a3b8;
-  margin: .5rem 0;
-  font-style: italic;
+  border-left: 3px solid #7c3aed !important;
+  padding-left: .8rem !important;
+  color: #94a3b8 !important;
+  margin: .5rem 0 !important;
+  font-style: italic !important;
 }
 
 .chat-assistant-bubble hr {
-  border: none;
-  border-top: 1px solid rgba(124, 58, 237, 0.25);
-  margin: .75rem 0;
+  border: none !important;
+  border-top: 1px solid rgba(124, 58, 237, 0.25) !important;
+  margin: .75rem 0 !important;
 }
 
 /* ── Light mode ── */
-html.light-mode .chat-assistant-bubble {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: rgba(124, 58, 237, 0.18);
-  color: #1e1b4b;
-}
-
-html.light-mode .chat-assistant-bubble p  { color: #374151; }
-html.light-mode .chat-assistant-bubble li { color: #4b5563; }
-
+html.light-mode .chat-assistant-bubble           { background: rgba(255,255,255,.92) !important; color: #1e1b4b !important; }
+html.light-mode .chat-assistant-bubble p         { color: #374151 !important; }
+html.light-mode .chat-assistant-bubble li        { color: #4b5563 !important; }
 html.light-mode .chat-assistant-bubble h1,
 html.light-mode .chat-assistant-bubble h2,
-html.light-mode .chat-assistant-bubble h3 { color: #7c3aed; border-color: rgba(124,58,237,.2); }
+html.light-mode .chat-assistant-bubble h3        { color: #7c3aed !important; border-color: rgba(124,58,237,.2) !important; }
+html.light-mode .chat-assistant-bubble th        { background: rgba(124,58,237,.08) !important; color: #6d28d9 !important; }
+html.light-mode .chat-assistant-bubble td        { color: #374151 !important; }
+html.light-mode .chat-assistant-bubble strong,
+html.light-mode .chat-assistant-bubble b         { color: #0891b2 !important; }
+html.light-mode .chat-assistant-bubble code      { background: rgba(124,58,237,.1) !important; color: #7c3aed !important; }
+html.light-mode .chat-assistant-bubble pre code  { color: #1e1b4b !important; }
 
 html.light-mode .chat-assistant-bubble th { background: rgba(124,58,237,.08); color: #6d28d9; }
 html.light-mode .chat-assistant-bubble td { color: #374151; }
