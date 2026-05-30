@@ -82,11 +82,13 @@
         font-weight: 700;
         letter-spacing: 0.12em;
         margin: 0 0 0.5rem;
+        /* fallback jeśli gradient-text nie zadziała */
+        color: #d8b4fe;
     }
 
     .dash-subtitle {
         font-family: 'Inter', sans-serif;
-        color: var(--text-muted);
+        color: #cbd5e1;
         font-size: 0.9rem;
         letter-spacing: 0.05em;
         margin: 0;
@@ -119,7 +121,7 @@
         font-size: 0.7rem;
         font-weight: 600;
         letter-spacing: 0.15em;
-        color: var(--text-dim);
+        color: #94a3b8;
         text-transform: uppercase;
     }
 
@@ -127,6 +129,7 @@
         font-family: 'Inter', sans-serif;
         font-size: 1.1rem;
         font-weight: 600;
+        color: #f1f5f9;
     }
 
     .stat-value {
@@ -146,7 +149,7 @@
     .dash-footer {
         font-family: 'Inter', sans-serif;
         font-size: 0.72rem;
-        color: var(--text-dim);
+        color: #64748b;
         letter-spacing: 0.06em;
         margin-top: 1rem;
     }
