@@ -16,59 +16,146 @@
 <div class="analyzer-wrapper">
 
     <div class="analyzer-header">
-        <h2 class="gradient-text analyzer-title">Terminal Analityczny</h2>
+        <h2 class="analyzer-title">Terminal Analityczny</h2>
         <p class="analyzer-subtitle">Wgraj plik .eml — AI przeanalizuje nagłówki pod kątem bezpieczeństwa</p>
     </div>
 
     <div class="glass-card analyzer-card">
 
-        <div class="terminal" id="terminal-output">
-            @ConvertMarkdownToHtml(outputText)
-            @if (!IsLoading)
+        <!-- ── Obszar wiadomości ── -->
+        <div class="chat-messages" id="terminal-output">
+
+            @if (messages.Count == 0 && !IsLoading)
             {
-                <span class="cursor" style="opacity: @cursorOpacity;">█</span>
+                <div class="chat-empty">
+                    <div class="chat-empty-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="m9 12 2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div class="chat-empty-title">Gotowy do analizy</div>
+                    <div class="chat-empty-sub">Wybierz plik .eml poniżej i kliknij Analizuj</div>
+                </div>
             }
+
+            @foreach (var msg in messages)
+            {
+                @if (msg.Role == "user")
+                {
+                    <div class="chat-row chat-row-user">
+                        <div class="chat-user-bubble">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                            </svg>
+                            @msg.Content
+                        </div>
+                    </div>
+                }
+                else if (msg.Role == "assistant")
+                {
+                    <div class="chat-row chat-row-assistant">
+                        <div class="chat-avatar">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <div class="chat-assistant-bubble">
+                            @ConvertMarkdownToHtml(msg.Content)
+                        </div>
+                    </div>
+                }
+                else if (msg.Role == "error")
+                {
+                    <div class="chat-row chat-row-assistant">
+                        <div class="chat-avatar chat-avatar-error">!</div>
+                        <div class="chat-error-bubble">@msg.Content</div>
+                    </div>
+                }
+            }
+
+            @if (IsLoading)
+            {
+                <div class="chat-row chat-row-assistant">
+                    <div class="chat-avatar chat-avatar-pulse">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </div>
+                    <div class="chat-loading-bubble">
+                        <div class="chat-typing">
+                            <span></span><span></span><span></span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(loadingPhase))
+                        {
+                            <div class="chat-loading-phase">@loadingPhase</div>
+                        }
+                    </div>
+                </div>
+            }
+
         </div>
 
-        <div class="analyzer-controls">
-            <div class="controls-left">
-                <select class="ctrl-select" @bind="selectedTemplateName">
-                    @foreach (var template in GeminiService.DefaultTemplates)
-                    {
-                        <option value="@template.Name">@template.Name</option>
-                    }
-                </select>
+        <!-- ── Pasek kontrolny ── -->
+        <div class="chat-input-bar">
+            <div class="chat-input-left">
 
-                <label class="file-label" style="@(IsLoading ? "opacity:0.5;pointer-events:none;" : "")">
-                    <span>📎 Wybierz .eml</span>
+                <div class="ctrl-group">
+                    <label class="ctrl-label">Szablon</label>
+                    <select class="ctrl-select" @bind="selectedTemplateName">
+                        @foreach (var t in GeminiService.DefaultTemplates)
+                        {
+                            <option value="@t.Name">@t.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <label class="file-pick @(IsLoading ? "disabled" : "")">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                    </svg>
+                    <span>@(string.IsNullOrEmpty(loadedFileName) ? "Wybierz .eml" : loadedFileName)</span>
                     <InputFile OnChange="HandleFileSelected" disabled="@IsLoading" accept=".eml" style="display:none;" />
                 </label>
 
-                @if (!string.IsNullOrEmpty(loadedFileName))
-                {
-                    <span class="file-badge">✓ @loadedFileName</span>
-                }
             </div>
 
-            <div class="controls-right">
-                <button class="ctrl-btn ctrl-btn-secondary" @onclick="ClearConsole" disabled="@IsLoading">
-                    Wyczyść
-                </button>
+            <div class="chat-input-right">
                 @if (analysisCompleted)
                 {
-                    <button class="ctrl-btn ctrl-btn-ghost" @onclick="CopyReportToClipboard">
+                    <button class="ctrl-btn ctrl-btn-ghost" @onclick="CopyReportToClipboard" title="Kopiuj raport">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
                         Kopiuj raport
                     </button>
                 }
+
+                <button class="ctrl-btn ctrl-btn-secondary" @onclick="ClearConsole" disabled="@IsLoading">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        <path d="M10 11v6"/><path d="M14 11v6"/>
+                    </svg>
+                    Wyczyść
+                </button>
+
                 <button class="ctrl-btn ctrl-btn-primary" @onclick="Analyze" disabled="@IsLoading">
                     @if (IsLoading)
                     {
-                        <span class="spin">◌</span>
+                        <span class="spin-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                            </svg>
+                        </span>
                         <span>Analizuję...</span>
                     }
                     else
                     {
-                        <span>⟶ Analizuj</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+                        </svg>
+                        <span>Analizuj</span>
                     }
                 </button>
             </div>
@@ -81,18 +168,24 @@
     private static readonly MarkdownPipeline MarkdownPipeline =
         new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
-    private string outputText = "> Wgraj plik .eml i kliknij Analizuj...";
-    private double cursorOpacity = 1;
-    private System.Threading.Timer? cursorTimer;
+    private record ChatMsg(string Role, string Content);
+    private List<ChatMsg> messages = new();
+
     private string selectedTemplateName = string.Empty;
     private bool IsLoading = false;
     private bool analysisCompleted = false;
     private AnalysisResult? analysisResult;
-    private char[] spinner = { '◐', '◓', '◑', '◒' };
-    private int spinnerIndex = 0;
-    private int progress = 0;
     private byte[] fileContent = Array.Empty<byte>();
     private string loadedFileName = string.Empty;
+    private string loadingPhase = string.Empty;
+
+    private static readonly string[] LoadingPhases =
+    {
+        "Parsowanie nagłówków...",
+        "Wysyłanie zapytania do AI...",
+        "Analizowanie nagłówków...",
+        "Generowanie raportu..."
+    };
 
     private MarkupString ConvertMarkdownToHtml(string markdown)
     {
@@ -102,17 +195,12 @@
 
     protected override void OnInitialized()
     {
-        cursorTimer = new Timer(BlinkCursor, null, 0, 500);
         selectedTemplateName = GeminiService.DefaultTemplates.First().Name;
     }
 
-    private void BlinkCursor(object? state)
+    private async Task ScrollToBottom()
     {
-        if (!IsLoading)
-        {
-            cursorOpacity = cursorOpacity == 1 ? 0 : 1;
-            InvokeAsync(StateHasChanged);
-        }
+        await JSRuntime.InvokeVoidAsync("scrollToBottom");
     }
 
     private async Task CopyReportToClipboard()
@@ -121,34 +209,32 @@
             await JSRuntime.InvokeVoidAsync("copyToClipboard", analysisResult.AiAnalysis);
     }
 
-    private async Task ScrollToBottom()
-    {
-        await JSRuntime.InvokeVoidAsync("scrollToBottom");
-    }
-
     private async Task ClearConsole()
     {
-        outputText = ">";
+        messages.Clear();
         fileContent = Array.Empty<byte>();
         loadedFileName = string.Empty;
         analysisCompleted = false;
+        analysisResult = null;
         StateHasChanged();
-        await ScrollToBottom();
     }
 
     private async Task Analyze()
     {
         if (fileContent.Length == 0)
         {
-            outputText = "> ⚠ Proszę wgrać plik .eml.";
+            messages.Add(new ChatMsg("error", "Wybierz plik .eml przed analizą."));
+            StateHasChanged();
             return;
         }
 
+        messages.Add(new ChatMsg("user", loadedFileName));
         IsLoading = true;
         analysisCompleted = false;
         analysisResult = null;
-        outputText = string.Empty;
-        progress = 0;
+        loadingPhase = LoadingPhases[0];
+        StateHasChanged();
+        await ScrollToBottom();
 
         try
         {
@@ -159,27 +245,21 @@
             {
                 using var stream = new MemoryStream(fileContent);
                 emailRecord = EmailParser.Parse(stream);
-                var selectedTemplate = GeminiService.DefaultTemplates.First(t => t.Name == selectedTemplateName);
-                aiAnalysis = await GeminiService.AnalyzeHeaders(emailRecord.RawHeaders, selectedTemplate);
+                var template = GeminiService.DefaultTemplates.First(t => t.Name == selectedTemplateName);
+                aiAnalysis = await GeminiService.AnalyzeHeaders(emailRecord.RawHeaders, template);
             });
 
+            int phaseIdx = 0;
             while (!analysisTask.IsCompleted)
             {
-                spinnerIndex = (spinnerIndex + 1) % spinner.Length;
-                progress = Math.Min(progress + 5, 99);
-                var bar = new string('█', progress / 10) + new string('░', 10 - progress / 10);
-                outputText = $"> Analizowanie... {spinner[spinnerIndex]}  [{bar}] {progress}%";
+                phaseIdx = (phaseIdx + 1) % LoadingPhases.Length;
+                loadingPhase = LoadingPhases[phaseIdx];
                 StateHasChanged();
                 await ScrollToBottom();
-                await Task.Delay(200);
+                await Task.Delay(1200);
             }
 
             await analysisTask;
-
-            IsLoading = false;
-            progress = 100;
-            outputText = "> Analizowanie...  [██████████] 100%\n";
-            StateHasChanged();
 
             analysisResult = new AnalysisResult
             {
@@ -190,36 +270,20 @@
                 AiAnalysis = aiAnalysis!
             };
 
-            await AnimateText("> ✓ Otrzymano odpowiedź od AI...");
-            outputText += "\n" + analysisResult.AiAnalysis;
+            messages.Add(new ChatMsg("assistant", aiAnalysis!));
             analysisCompleted = true;
             CounterService.Increment();
-            StateHasChanged();
         }
         catch (Exception ex)
         {
-            outputText += $"\n> ✗ BŁĄD: {ex.Message}\n";
-            outputText += "> Sprawdź klucz API w pliku .env";
-            StateHasChanged();
-            await ScrollToBottom();
+            messages.Add(new ChatMsg("error", $"Błąd połączenia z AI: {ex.Message}"));
         }
         finally
         {
             IsLoading = false;
-        }
-    }
-
-    private async Task AnimateText(string text)
-    {
-        foreach (char c in text)
-        {
-            outputText += c;
             StateHasChanged();
             await ScrollToBottom();
-            await Task.Delay(10);
         }
-        outputText += "\n";
-        StateHasChanged();
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
@@ -227,40 +291,35 @@
         var file = e.File;
         if (file.Size > 10 * 1024 * 1024)
         {
-            outputText = "> ⚠ Plik za duży (max 10 MB).";
+            messages.Add(new ChatMsg("error", "Plik jest za duży (max 10 MB)."));
+            StateHasChanged();
             return;
         }
         using var ms = new MemoryStream();
         await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(ms);
         fileContent = ms.ToArray();
         loadedFileName = file.Name;
-    }
-
-    public void Dispose()
-    {
-        cursorTimer?.Dispose();
+        StateHasChanged();
     }
 }
 
 <style>
     .analyzer-wrapper {
-        max-width: 960px;
+        max-width: 900px;
         margin: 0 auto;
-        padding: 2rem 1rem;
+        padding: 1.5rem 1rem 2rem;
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
+        gap: 1.25rem;
     }
 
-    .analyzer-header {
-        text-align: center;
-    }
+    .analyzer-header { text-align: center; }
 
     .analyzer-title {
         font-family: 'Inter', sans-serif;
-        font-size: 1.7rem;
+        font-size: 1.55rem;
         font-weight: 700;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.04em;
         margin: 0 0 0.3rem;
         color: #d8b4fe;
     }
@@ -268,103 +327,285 @@
     .analyzer-subtitle {
         font-family: 'Inter', sans-serif;
         color: #94a3b8;
-        font-size: 0.83rem;
+        font-size: 0.82rem;
         margin: 0;
     }
 
+    /* ── Card ── */
     .analyzer-card {
         padding: 0;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
-    /* ── Terminal ── */
-    .terminal {
-        background: #020010;
-        color: #c4b5fd;
-        font-family: var(--font-mono);
-        font-size: 0.88rem;
-        line-height: 1.6;
-        padding: 1.5rem;
-        min-height: 380px;
-        max-height: 55vh;
+    /* ── Chat messages ── */
+    .chat-messages {
+        min-height: 420px;
+        max-height: 62vh;
         overflow-y: auto;
-        white-space: pre-wrap;
-        border-bottom: 1px solid var(--border);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
     }
 
-    .terminal p, .terminal li { color: #c4b5fd !important; margin: 0.2rem 0; }
+    /* Empty state */
+    .chat-empty {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 3rem 1rem;
+        color: #334155;
+    }
 
-    .terminal table {
+    .chat-empty-icon {
+        color: rgba(124, 58, 237, 0.35);
+        filter: drop-shadow(0 0 10px rgba(124, 58, 237, 0.2));
+    }
+
+    .chat-empty-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        color: #475569;
+        font-weight: 500;
+    }
+
+    .chat-empty-sub {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8rem;
+        color: #334155;
+    }
+
+    /* ── Row layout ── */
+    .chat-row {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    .chat-row-user {
+        justify-content: flex-end;
+    }
+
+    /* ── User bubble ── */
+    .chat-user-bubble {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.35), rgba(88, 28, 135, 0.45));
+        border: 1px solid rgba(192, 132, 252, 0.35);
+        border-radius: 18px 18px 4px 18px;
+        padding: 0.7rem 1.1rem;
+        max-width: 55%;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.87rem;
+        color: #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        word-break: break-all;
+    }
+
+    .chat-user-bubble svg { flex-shrink: 0; opacity: 0.7; }
+
+    /* ── AI Avatar ── */
+    .chat-avatar {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        background: linear-gradient(135deg, #7c3aed, #0891b2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        box-shadow: 0 0 12px rgba(124, 58, 237, 0.45);
+    }
+
+    .chat-avatar-pulse {
+        animation: avatar-pulse 1.8s ease-in-out infinite;
+    }
+
+    @@keyframes avatar-pulse {
+        0%, 100% { box-shadow: 0 0 10px rgba(124, 58, 237, 0.4); }
+        50%       { box-shadow: 0 0 22px rgba(124, 58, 237, 0.75), 0 0 40px rgba(6, 182, 212, 0.3); }
+    }
+
+    .chat-avatar-error {
+        background: linear-gradient(135deg, #dc2626, #9f1239);
+        box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* ── Assistant bubble ── */
+    .chat-assistant-bubble {
+        background: rgba(14, 6, 40, 0.7);
+        border: 1px solid rgba(124, 58, 237, 0.22);
+        border-radius: 4px 18px 18px 18px;
+        padding: 1rem 1.25rem;
+        flex: 1;
+        min-width: 0;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.87rem;
+        color: #e2e8f0;
+        line-height: 1.7;
+    }
+
+    /* Markdown inside assistant */
+    .chat-assistant-bubble p { margin: 0.3rem 0; }
+    .chat-assistant-bubble ul, .chat-assistant-bubble ol { padding-left: 1.25rem; margin: 0.4rem 0; }
+    .chat-assistant-bubble li { margin: 0.2rem 0; color: #cbd5e1; }
+
+    .chat-assistant-bubble h1,
+    .chat-assistant-bubble h2,
+    .chat-assistant-bubble h3 {
+        font-family: 'Inter', sans-serif;
+        color: #c4b5fd;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.28);
+        padding-bottom: 0.3rem;
+        margin: 1rem 0 0.5rem;
+        font-weight: 600;
+    }
+
+    .chat-assistant-bubble table {
         width: 100%;
         border-collapse: collapse;
         margin: 0.75rem 0;
         font-size: 0.82rem;
     }
 
-    .terminal th, .terminal td {
-        border: 1px solid rgba(124, 58, 237, 0.35);
+    .chat-assistant-bubble th,
+    .chat-assistant-bubble td {
+        border: 1px solid rgba(124, 58, 237, 0.28);
         padding: 6px 10px;
         text-align: left;
-        color: #c4b5fd;
+        color: #cbd5e1;
     }
 
-    .terminal th {
+    .chat-assistant-bubble th {
         background: rgba(124, 58, 237, 0.15);
         color: #a5b4fc;
         font-weight: 600;
-        letter-spacing: 0.04em;
     }
 
-    .terminal h1, .terminal h2, .terminal h3 {
-        color: #a5b4fc !important;
-        border-bottom: 1px solid rgba(124, 58, 237, 0.3);
-        padding-bottom: 0.2rem;
-        margin: 0.8rem 0 0.4rem;
+    .chat-assistant-bubble strong { color: #67e8f9; }
+
+    .chat-assistant-bubble code {
+        background: rgba(124, 58, 237, 0.18);
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.84em;
+        color: #c4b5fd;
     }
 
-    .terminal strong { color: #06d6fa; }
-    .terminal code {
-        background: rgba(124, 58, 237, 0.2);
-        padding: 1px 5px;
-        border-radius: 3px;
-        font-size: 0.85em;
+    .chat-assistant-bubble blockquote {
+        border-left: 3px solid #7c3aed;
+        padding-left: 0.75rem;
+        color: #94a3b8;
+        margin: 0.5rem 0;
+        font-style: italic;
     }
 
-    .cursor {
-        color: #7c3aed;
-        animation: cursor-blink 1s step-end infinite;
+    /* ── Loading bubble ── */
+    .chat-loading-bubble {
+        background: rgba(14, 6, 40, 0.7);
+        border: 1px solid rgba(124, 58, 237, 0.22);
+        border-radius: 4px 18px 18px 18px;
+        padding: 0.9rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
-    @@keyframes cursor-blink {
-        0%, 100% { opacity: 1; }
-        50%       { opacity: 0; }
+    .chat-typing {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        height: 22px;
     }
 
-    /* ── Controls bar ── */
-    .analyzer-controls {
+    .chat-typing span {
+        width: 8px;
+        height: 8px;
+        background: #7c3aed;
+        border-radius: 50%;
+        display: inline-block;
+        animation: typing-dot 1.4s ease-in-out infinite;
+    }
+
+    .chat-typing span:nth-child(2) { animation-delay: 0.22s; background: #a855f7; }
+    .chat-typing span:nth-child(3) { animation-delay: 0.44s; background: #22d3ee; }
+
+    @@keyframes typing-dot {
+        0%, 60%, 100% { transform: translateY(0);   opacity: 0.4; }
+        30%            { transform: translateY(-9px); opacity: 1;   }
+    }
+
+    .chat-loading-phase {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.76rem;
+        color: #64748b;
+        letter-spacing: 0.02em;
+    }
+
+    /* ── Error bubble ── */
+    .chat-error-bubble {
+        background: rgba(220, 38, 38, 0.1);
+        border: 1px solid rgba(220, 38, 38, 0.3);
+        border-radius: 4px 18px 18px 18px;
+        padding: 0.75rem 1.1rem;
+        flex: 1;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.87rem;
+        color: #fca5a5;
+    }
+
+    /* ── Input bar ── */
+    .chat-input-bar {
         display: flex;
         align-items: center;
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 0.75rem;
-        padding: 1rem 1.25rem;
-        background: rgba(6, 1, 26, 0.6);
+        padding: 0.9rem 1.25rem;
+        background: rgba(6, 1, 26, 0.55);
+        border-top: 1px solid rgba(124, 58, 237, 0.18);
     }
 
-    .controls-left, .controls-right {
+    .chat-input-left,
+    .chat-input-right {
         display: flex;
         align-items: center;
         gap: 0.6rem;
         flex-wrap: wrap;
     }
 
+    .ctrl-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .ctrl-label {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        color: #475569;
+        text-transform: uppercase;
+    }
+
     .ctrl-select {
         background: rgba(14, 6, 40, 0.9);
         color: #e2e8f0;
-        border: 1px solid rgba(124, 58, 237, 0.4);
-        border-radius: 6px;
-        padding: 0.45rem 0.75rem;
-        font-family: var(--font-ui);
+        border: 1px solid rgba(124, 58, 237, 0.38);
+        border-radius: 8px;
+        padding: 0.42rem 0.7rem;
+        font-family: 'Inter', sans-serif;
         font-size: 0.82rem;
         outline: none;
         cursor: pointer;
@@ -373,82 +614,86 @@
 
     .ctrl-select:focus { border-color: #c084fc; }
 
-    .file-label {
+    .file-pick {
         display: flex;
         align-items: center;
-        gap: 0.4rem;
+        gap: 0.45rem;
         background: rgba(14, 6, 40, 0.9);
         color: #cbd5e1;
-        border: 1px solid rgba(124, 58, 237, 0.4);
-        border-radius: 6px;
-        padding: 0.45rem 0.75rem;
-        font-family: var(--font-ui);
+        border: 1px solid rgba(124, 58, 237, 0.38);
+        border-radius: 8px;
+        padding: 0.42rem 0.8rem;
+        font-family: 'Inter', sans-serif;
         font-size: 0.82rem;
         cursor: pointer;
         transition: border-color 0.2s, color 0.2s;
+        max-width: 200px;
+        overflow: hidden;
     }
 
-    .file-label:hover {
+    .file-pick span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .file-pick:hover:not(.disabled) {
         border-color: #c084fc;
         color: #f1f5f9;
     }
 
-    .file-badge {
-        font-family: var(--font-ui);
-        font-size: 0.78rem;
-        color: var(--success);
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        border-radius: 4px;
-        padding: 0.3rem 0.6rem;
-    }
+    .file-pick.disabled { opacity: 0.45; cursor: not-allowed; }
 
+    /* ── Buttons ── */
     .ctrl-btn {
-        font-family: var(--font-ui);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-family: 'Inter', sans-serif;
         font-size: 0.82rem;
         font-weight: 500;
-        border-radius: 6px;
+        border-radius: 8px;
         padding: 0.45rem 0.9rem;
         cursor: pointer;
         border: 1px solid transparent;
         transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
     }
 
-    .ctrl-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .ctrl-btn-primary {
-        background: linear-gradient(135deg, var(--primary), #5b21b6);
+        background: linear-gradient(135deg, #7c3aed, #5b21b6);
         color: #fff;
-        box-shadow: 0 0 14px var(--primary-glow);
+        box-shadow: 0 0 16px rgba(124, 58, 237, 0.45);
     }
-    .ctrl-btn-primary:hover:not(:disabled) { box-shadow: 0 0 24px var(--primary-glow); }
+    .ctrl-btn-primary:hover:not(:disabled) {
+        box-shadow: 0 0 28px rgba(124, 58, 237, 0.7);
+        transform: translateY(-1px);
+    }
 
     .ctrl-btn-secondary {
         background: transparent;
-        color: #cbd5e1;
-        border-color: rgba(124, 58, 237, 0.4);
+        color: #94a3b8;
+        border-color: rgba(124, 58, 237, 0.3);
     }
     .ctrl-btn-secondary:hover:not(:disabled) {
         border-color: #c084fc;
-        color: #f1f5f9;
+        color: #e2e8f0;
     }
 
     .ctrl-btn-ghost {
         background: transparent;
         color: #67e8f9;
-        border-color: rgba(34, 211, 238, 0.4);
+        border-color: rgba(34, 211, 238, 0.35);
     }
     .ctrl-btn-ghost:hover:not(:disabled) {
         background: rgba(34, 211, 238, 0.08);
-        box-shadow: 0 0 12px rgba(34, 211, 238, 0.3);
+        box-shadow: 0 0 14px rgba(34, 211, 238, 0.25);
     }
 
-    .spin {
-        display: inline-block;
-        animation: spin-anim 0.8s linear infinite;
+    .spin-icon {
+        display: inline-flex;
+        animation: spin-anim 0.9s linear infinite;
     }
 
     @@keyframes spin-anim {
@@ -457,7 +702,8 @@
     }
 
     @@media (max-width: 640px) {
-        .analyzer-controls { flex-direction: column; align-items: stretch; }
-        .controls-left, .controls-right { justify-content: center; }
+        .chat-input-bar { flex-direction: column; align-items: stretch; }
+        .chat-input-left, .chat-input-right { justify-content: center; }
+        .chat-user-bubble { max-width: 85%; }
     }
 </style>
