@@ -24,18 +24,18 @@
   --glass-blur:       blur(22px);
 
   /* Komponenty — semantyczne */
-  --color-title:      #d8b4fe;
-  --color-subtitle:   #94a3b8;
-  --color-input-bg:   rgba(14, 6, 40, 0.9);
-  --color-input-border: rgba(124, 58, 237, 0.38);
-  --color-bar-bg:     rgba(6, 1, 26, 0.55);
-  --color-sidebar-bg: rgba(6, 1, 26, 0.85);
-  --color-chat-ai-bg: rgba(14, 6, 40, 0.7);
-  --color-chat-ai-border: rgba(124, 58, 237, 0.22);
+  --color-title:        #d8b4fe;
+  --color-subtitle:     #94a3b8;
+  --color-input-bg:     rgba(14, 6, 40, 0.9);
+  --color-input-border: rgba(124, 58, 237, 0.42);
+  --color-bar-bg:       rgba(6, 1, 26, 0.6);
+  --color-sidebar-bg:   rgba(6, 1, 26, 0.85);
+  --color-chat-ai-bg:   rgba(14, 6, 40, 0.7);
+  --color-chat-ai-border: rgba(124, 58, 237, 0.25);
   --color-chat-ai-text: #e2e8f0;
-  --color-empty-icon: rgba(124, 58, 237, 0.35);
-  --color-empty-title: #475569;
-  --color-empty-sub:  #334155;
+  --color-empty-icon:   rgba(124, 58, 237, 0.5);
+  --color-empty-title:  #8892a4;
+  --color-empty-sub:    #64748b;
 }
 
 /* ═══════════════════════════════════════════════════════════════
