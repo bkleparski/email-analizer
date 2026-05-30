@@ -2,122 +2,159 @@
 
 <PageTitle>Logowanie — EBARTNET Security</PageTitle>
 
-<style>
-    .login-wrapper {
-        background-color: #1a0c2e;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-family: 'Courier New', Courier, monospace;
-    }
-
-    .login-box {
-        border: 1px solid #6f42c1;
-        padding: 40px;
-        width: 100%;
-        max-width: 420px;
-        background-color: #0d0019;
-        box-shadow: 0 0 30px rgba(111, 66, 193, 0.4);
-    }
-
-    .login-title {
-        color: #e0d0ff;
-        text-align: center;
-        margin-bottom: 6px;
-        font-size: 1.2rem;
-        letter-spacing: 3px;
-    }
-
-    .login-subtitle {
-        color: #6f42c1;
-        text-align: center;
-        margin-bottom: 32px;
-        font-size: 0.78rem;
-        letter-spacing: 1px;
-    }
-
-    .login-field {
-        margin-bottom: 20px;
-    }
-
-    .login-field label {
-        display: block;
-        color: #b19cd9;
-        margin-bottom: 6px;
-        font-size: 0.82rem;
-    }
-
-    .login-field input {
-        width: 100%;
-        background-color: #1a0c2e;
-        color: #e0d0ff;
-        border: 1px solid #6f42c1;
-        padding: 10px 12px;
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 0.9rem;
-        box-sizing: border-box;
-        outline: none;
-    }
-
-    .login-field input:focus {
-        border-color: #9b59b6;
-        box-shadow: 0 0 6px rgba(111, 66, 193, 0.5);
-    }
-
-    .btn-login {
-        width: 100%;
-        background-color: #6f42c1;
-        color: white;
-        border: none;
-        padding: 12px;
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 0.88rem;
-        cursor: pointer;
-        letter-spacing: 3px;
-        margin-top: 8px;
-        transition: background-color 0.2s;
-    }
-
-    .btn-login:hover {
-        background-color: #9b59b6;
-        box-shadow: 0 0 12px rgba(111, 66, 193, 0.6);
-    }
-
-    .error-msg {
-        color: #ff6b6b;
-        text-align: center;
-        margin-bottom: 18px;
-        font-size: 0.82rem;
-        border: 1px solid #ff4444;
-        padding: 8px;
-    }
-</style>
-
 <div class="login-wrapper">
-    <div class="login-box">
-        <div class="login-title">[ EBARTNET ]</div>
-        <div class="login-subtitle">EMAIL SECURITY ANALYZER — DOSTĘP AUTORYZOWANY</div>
+
+    <div class="login-nebula-accent"></div>
+
+    <div class="glass-card login-box">
+
+        <div class="login-brand">
+            <div class="login-logo">⬡</div>
+            <div class="login-title gradient-text">EBARTNET</div>
+            <div class="login-subtitle">Email Security Analyzer</div>
+        </div>
 
         @if (ShowError)
         {
-            <div class="error-msg">&gt; BŁĄD: Nieprawidłowy login lub hasło.</div>
+            <div class="login-error">
+                <span>⚠</span> Nieprawidłowy login lub hasło.
+            </div>
         }
 
         <form method="post" action="/account/login">
             <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+
             <div class="login-field">
-                <label>&gt; LOGIN:</label>
-                <input type="text" name="username" autocomplete="username" autofocus required />
+                <label class="login-label">LOGIN</label>
+                <input class="cosmic-input" type="text" name="username"
+                       autocomplete="username" autofocus required />
             </div>
+
             <div class="login-field">
-                <label>&gt; HASŁO:</label>
-                <input type="password" name="password" autocomplete="current-password" required />
+                <label class="login-label">HASŁO</label>
+                <input class="cosmic-input" type="password" name="password"
+                       autocomplete="current-password" required />
             </div>
-            <button type="submit" class="btn-login">[ ZALOGUJ ]</button>
+
+            <button type="submit" class="btn-cosmic login-btn">
+                Zaloguj się &nbsp; →
+            </button>
         </form>
+
+        <div class="login-hint">Dostęp tylko dla autoryzowanych użytkowników</div>
     </div>
 </div>
+
+<style>
+    .login-wrapper {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+        position: relative;
+    }
+
+    .login-nebula-accent {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(ellipse, rgba(124, 58, 237, 0.12) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .login-box {
+        width: 100%;
+        max-width: 400px;
+        padding: 2.5rem 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.4rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .login-brand {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .login-logo {
+        font-size: 2.4rem;
+        background: linear-gradient(135deg, #7c3aed, #06d6fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 0 16px rgba(124, 58, 237, 0.7));
+        line-height: 1;
+    }
+
+    .login-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+    }
+
+    .login-subtitle {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        letter-spacing: 0.06em;
+    }
+
+    .login-error {
+        background: rgba(244, 63, 94, 0.12);
+        border: 1px solid rgba(244, 63, 94, 0.4);
+        border-radius: 6px;
+        padding: 0.65rem 1rem;
+        color: #f87171;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.82rem;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .login-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .login-label {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        color: var(--text-muted);
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 0.88rem;
+        margin-top: 0.3rem;
+        border-radius: 8px;
+    }
+
+    .login-hint {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.68rem;
+        color: var(--text-dim);
+        text-align: center;
+        letter-spacing: 0.04em;
+    }
+</style>
 
 @code {
     [SupplyParameterFromQuery]

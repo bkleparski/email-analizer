@@ -11,47 +11,84 @@
 @inject IJSRuntime JSRuntime
 @inject AnalysisCounterService CounterService
 
-<div class="terminal">
-    <div class="terminal-output" id="terminal-output">
-        @ConvertMarkdownToHtml(outputText)
-        @if (!IsLoading)
-        {
-            <span class="cursor" style="opacity: @cursorOpacity;">_</span>
-        }
+<PageTitle>Analizator AI — EBARTNET Security</PageTitle>
+
+<div class="analyzer-wrapper">
+
+    <div class="analyzer-header">
+        <h2 class="gradient-text analyzer-title">Terminal Analityczny</h2>
+        <p class="analyzer-subtitle">Wgraj plik .eml — AI przeanalizuje nagłówki pod kątem bezpieczeństwa</p>
     </div>
-    <select @bind="selectedTemplateName">
-        @foreach (var template in GeminiService.DefaultTemplates)
-        {
-            <option value="@template.Name">@template.Name</option>
-        }
-    </select>
-    <button @onclick="Analyze" disabled="@IsLoading">Analizuj</button>
-    <InputFile OnChange="HandleFileSelected" disabled="@IsLoading" accept=".eml" />
-    @if (!string.IsNullOrEmpty(loadedFileName))
-    {
-        <span style="color: #28a745; font-family: 'Courier New', monospace; font-size: 0.85rem; margin-left: 8px;">
-            ✓ @loadedFileName
-        </span>
-    }
-    <button @onclick="ClearConsole" disabled="@IsLoading">Wyczyść</button>
-    @if (analysisCompleted)
-    {
-        <button @onclick="CopyReportToClipboard">[ KOPIUJ RAPORT ]</button>
-    }
+
+    <div class="glass-card analyzer-card">
+
+        <div class="terminal" id="terminal-output">
+            @ConvertMarkdownToHtml(outputText)
+            @if (!IsLoading)
+            {
+                <span class="cursor" style="opacity: @cursorOpacity;">█</span>
+            }
+        </div>
+
+        <div class="analyzer-controls">
+            <div class="controls-left">
+                <select class="ctrl-select" @bind="selectedTemplateName">
+                    @foreach (var template in GeminiService.DefaultTemplates)
+                    {
+                        <option value="@template.Name">@template.Name</option>
+                    }
+                </select>
+
+                <label class="file-label" style="@(IsLoading ? "opacity:0.5;pointer-events:none;" : "")">
+                    <span>📎 Wybierz .eml</span>
+                    <InputFile OnChange="HandleFileSelected" disabled="@IsLoading" accept=".eml" style="display:none;" />
+                </label>
+
+                @if (!string.IsNullOrEmpty(loadedFileName))
+                {
+                    <span class="file-badge">✓ @loadedFileName</span>
+                }
+            </div>
+
+            <div class="controls-right">
+                <button class="ctrl-btn ctrl-btn-secondary" @onclick="ClearConsole" disabled="@IsLoading">
+                    Wyczyść
+                </button>
+                @if (analysisCompleted)
+                {
+                    <button class="ctrl-btn ctrl-btn-ghost" @onclick="CopyReportToClipboard">
+                        Kopiuj raport
+                    </button>
+                }
+                <button class="ctrl-btn ctrl-btn-primary" @onclick="Analyze" disabled="@IsLoading">
+                    @if (IsLoading)
+                    {
+                        <span class="spin">◌</span>
+                        <span>Analizuję...</span>
+                    }
+                    else
+                    {
+                        <span>⟶ Analizuj</span>
+                    }
+                </button>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 @code {
     private static readonly MarkdownPipeline MarkdownPipeline =
         new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
-    private string outputText = "> Wgraj plik .eml...";
+    private string outputText = "> Wgraj plik .eml i kliknij Analizuj...";
     private double cursorOpacity = 1;
     private System.Threading.Timer? cursorTimer;
     private string selectedTemplateName = string.Empty;
     private bool IsLoading = false;
     private bool analysisCompleted = false;
     private AnalysisResult? analysisResult;
-    private char[] spinner = { '|', '/', '-', '\\' };
+    private char[] spinner = { '◐', '◓', '◑', '◒' };
     private int spinnerIndex = 0;
     private int progress = 0;
     private byte[] fileContent = Array.Empty<byte>();
@@ -103,7 +140,7 @@
     {
         if (fileContent.Length == 0)
         {
-            outputText = "> Proszę wgrać plik .eml.";
+            outputText = "> ⚠ Proszę wgrać plik .eml.";
             return;
         }
 
@@ -122,7 +159,6 @@
             {
                 using var stream = new MemoryStream(fileContent);
                 emailRecord = EmailParser.Parse(stream);
-
                 var selectedTemplate = GeminiService.DefaultTemplates.First(t => t.Name == selectedTemplateName);
                 aiAnalysis = await GeminiService.AnalyzeHeaders(emailRecord.RawHeaders, selectedTemplate);
             });
@@ -131,20 +167,19 @@
             {
                 spinnerIndex = (spinnerIndex + 1) % spinner.Length;
                 progress = Math.Min(progress + 5, 99);
-                var progressBar = "[" + new string('#', progress / 10) + new string('.', 10 - progress / 10) + "]";
-                outputText = $"> Analizowanie... {spinner[spinnerIndex]} {progressBar} {progress}%";
+                var bar = new string('█', progress / 10) + new string('░', 10 - progress / 10);
+                outputText = $"> Analizowanie... {spinner[spinnerIndex]}  [{bar}] {progress}%";
                 StateHasChanged();
                 await ScrollToBottom();
                 await Task.Delay(200);
             }
 
-            await analysisTask; // propaguje wyjątek jeśli był
+            await analysisTask;
 
             IsLoading = false;
             progress = 100;
-            outputText = $"> Analizowanie... [##########] 100%<br/>";
+            outputText = "> Analizowanie...  [██████████] 100%\n";
             StateHasChanged();
-            await ScrollToBottom();
 
             analysisResult = new AnalysisResult
             {
@@ -155,17 +190,16 @@
                 AiAnalysis = aiAnalysis!
             };
 
-            await AnimateText("> OTRZYMANO ODPOWIEDŹ OD AI...");
-            outputText += analysisResult.AiAnalysis;
+            await AnimateText("> ✓ Otrzymano odpowiedź od AI...");
+            outputText += "\n" + analysisResult.AiAnalysis;
             analysisCompleted = true;
             CounterService.Increment();
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            outputText += $"<br/><span style='color: red'>> !! SYSTEM ERROR: KERNEL PANIC !!</span><br/>";
-            outputText += $"<span style='color: red'>> REASON: {ex.Message}</span><br/>";
-            outputText += "<span style='color: red'>> Proszę sprawdzić klucz API w pliku konfiguracyjnym.</span><br/>";
+            outputText += $"\n> ✗ BŁĄD: {ex.Message}\n";
+            outputText += "> Sprawdź klucz API w pliku .env";
             StateHasChanged();
             await ScrollToBottom();
         }
@@ -184,9 +218,8 @@
             await ScrollToBottom();
             await Task.Delay(10);
         }
-        outputText += "<br/>";
+        outputText += "\n";
         StateHasChanged();
-        await ScrollToBottom();
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
@@ -194,13 +227,12 @@
         var file = e.File;
         if (file.Size > 10 * 1024 * 1024)
         {
-            outputText = "> Błąd: Plik jest za duży (max 10 MB).";
+            outputText = "> ⚠ Plik za duży (max 10 MB).";
             return;
         }
-
-        using var memoryStream = new MemoryStream();
-        await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(memoryStream);
-        fileContent = memoryStream.ToArray();
+        using var ms = new MemoryStream();
+        await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(ms);
+        fileContent = ms.ToArray();
         loadedFileName = file.Name;
     }
 
@@ -211,67 +243,220 @@
 }
 
 <style>
+    .analyzer-wrapper {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .analyzer-header {
+        text-align: center;
+    }
+
+    .analyzer-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.7rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        margin: 0 0 0.3rem;
+    }
+
+    .analyzer-subtitle {
+        font-family: 'Inter', sans-serif;
+        color: var(--text-dim);
+        font-size: 0.83rem;
+        margin: 0;
+    }
+
+    .analyzer-card {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    /* ── Terminal ── */
     .terminal {
-        background-color: black;
-        color: #e0d0ff;
-        font-family: 'Courier New', Courier, monospace;
-        padding: 20px;
-        border-radius: 5px;
-        height: 500px;
+        background: #020010;
+        color: #c4b5fd;
+        font-family: var(--font-mono);
+        font-size: 0.88rem;
+        line-height: 1.6;
+        padding: 1.5rem;
+        min-height: 380px;
+        max-height: 55vh;
         overflow-y: auto;
-    }
-
-    .terminal-output {
         white-space: pre-wrap;
-        color: #e0b0ff !important;
+        border-bottom: 1px solid var(--border);
     }
 
-    .terminal-output p, .terminal-output li, .terminal-output pre {
-        color: #e0b0ff !important;
-    }
+    .terminal p, .terminal li { color: #c4b5fd !important; margin: 0.2rem 0; }
 
-    .terminal-output table {
+    .terminal table {
         width: 100%;
         border-collapse: collapse;
-        margin: 10px 0;
-        color: #e0b0ff;
+        margin: 0.75rem 0;
+        font-size: 0.82rem;
     }
 
-    .terminal-output th, .terminal-output td {
-        border: 1px solid #6f42c1;
-        padding: 8px;
+    .terminal th, .terminal td {
+        border: 1px solid rgba(124, 58, 237, 0.35);
+        padding: 6px 10px;
         text-align: left;
+        color: #c4b5fd;
     }
 
-    .terminal-output th {
-        background-color: rgba(111, 66, 193, 0.3);
+    .terminal th {
+        background: rgba(124, 58, 237, 0.15);
+        color: #a5b4fc;
+        font-weight: 600;
+        letter-spacing: 0.04em;
     }
 
-    .terminal-output h1, .terminal-output h2 {
-        color: #b19cd9;
-        border-bottom: 1px solid #6f42c1;
+    .terminal h1, .terminal h2, .terminal h3 {
+        color: #a5b4fc !important;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+        padding-bottom: 0.2rem;
+        margin: 0.8rem 0 0.4rem;
     }
 
-    .terminal textarea, .terminal select, .terminal button {
-        background-color: #6f42c1;
-        color: white;
-        font-family: 'Courier New', Courier, monospace;
-        border: 1px solid #6f42c1;
-        margin: 5px;
-        box-shadow: 0 0 5px #6f42c1, 0 0 10px #6f42c1, 0 0 15px #6f42c1;
-    }
-
-    .terminal textarea {
-        width: 100%;
-        resize: none;
+    .terminal strong { color: #06d6fa; }
+    .terminal code {
+        background: rgba(124, 58, 237, 0.2);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 0.85em;
     }
 
     .cursor {
-        animation: blink 1s step-end infinite;
+        color: #7c3aed;
+        animation: cursor-blink 1s step-end infinite;
     }
 
-    @@keyframes blink {
-        from, to { color: transparent; }
-        50% { color: #e0d0ff; }
+    @@keyframes cursor-blink {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0; }
+    }
+
+    /* ── Controls bar ── */
+    .analyzer-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background: rgba(6, 1, 26, 0.6);
+    }
+
+    .controls-left, .controls-right {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .ctrl-select {
+        background: rgba(14, 6, 40, 0.8);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.45rem 0.75rem;
+        font-family: var(--font-ui);
+        font-size: 0.82rem;
+        outline: none;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+
+    .ctrl-select:focus { border-color: var(--primary-light); }
+
+    .file-label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(14, 6, 40, 0.8);
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.45rem 0.75rem;
+        font-family: var(--font-ui);
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: border-color 0.2s, color 0.2s;
+    }
+
+    .file-label:hover {
+        border-color: var(--primary-light);
+        color: var(--text);
+    }
+
+    .file-badge {
+        font-family: var(--font-ui);
+        font-size: 0.78rem;
+        color: var(--success);
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 4px;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .ctrl-btn {
+        font-family: var(--font-ui);
+        font-size: 0.82rem;
+        font-weight: 500;
+        border-radius: 6px;
+        padding: 0.45rem 0.9rem;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .ctrl-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .ctrl-btn-primary {
+        background: linear-gradient(135deg, var(--primary), #5b21b6);
+        color: #fff;
+        box-shadow: 0 0 14px var(--primary-glow);
+    }
+    .ctrl-btn-primary:hover:not(:disabled) { box-shadow: 0 0 24px var(--primary-glow); }
+
+    .ctrl-btn-secondary {
+        background: transparent;
+        color: var(--text-muted);
+        border-color: var(--border);
+    }
+    .ctrl-btn-secondary:hover:not(:disabled) {
+        border-color: var(--border-hover);
+        color: var(--text);
+    }
+
+    .ctrl-btn-ghost {
+        background: transparent;
+        color: var(--accent);
+        border-color: rgba(6, 214, 250, 0.3);
+    }
+    .ctrl-btn-ghost:hover:not(:disabled) {
+        background: rgba(6, 214, 250, 0.08);
+        box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .spin {
+        display: inline-block;
+        animation: spin-anim 0.8s linear infinite;
+    }
+
+    @@keyframes spin-anim {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+    }
+
+    @@media (max-width: 640px) {
+        .analyzer-controls { flex-direction: column; align-items: stretch; }
+        .controls-left, .controls-right { justify-content: center; }
     }
 </style>

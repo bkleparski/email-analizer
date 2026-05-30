@@ -5,62 +5,157 @@
 @inject AnalysisCounterService CounterService
 @implements IDisposable
 
+<PageTitle>Dashboard — EBARTNET Security</PageTitle>
+
+<div class="dash-wrapper">
+
+    <div class="dash-hero">
+        <div class="dash-logo">⬡</div>
+        <h1 class="dash-title gradient-text">EBARTNET SECURITY</h1>
+        <p class="dash-subtitle">Email Intelligence & Threat Analysis Platform</p>
+    </div>
+
+    <div class="dash-cards">
+
+        <div class="glass-card dash-card">
+            <div class="dash-card-icon" style="color: #10b981;">◉</div>
+            <div class="dash-card-label">STATUS SYSTEMU</div>
+            <div class="dash-card-value" style="color: #10b981;">
+                Online <span class="online-indicator"></span>
+            </div>
+        </div>
+
+        <div class="glass-card dash-card">
+            <div class="dash-card-icon" style="color: #06d6fa;">⬡</div>
+            <div class="dash-card-label">MODEL AI</div>
+            <div class="dash-card-value gradient-text">Gemini 2.5 Flash</div>
+        </div>
+
+        <div class="glass-card dash-card">
+            <div class="dash-card-icon" style="color: #a855f7;">◈</div>
+            <div class="dash-card-label">PRZEANALIZOWANO</div>
+            <div class="dash-card-value stat-value">@CounterService.TotalAnalyses</div>
+        </div>
+
+    </div>
+
+    <div class="dash-action">
+        <a href="/analyzer" class="btn-cosmic-outline">
+            ⟶ &nbsp; URUCHOM ANALIZATOR
+        </a>
+    </div>
+
+    <div class="dash-footer">
+        email-analizer.ebartnet.pl &nbsp;·&nbsp; Powered by Gemini AI
+    </div>
+
+</div>
+
 <style>
-    .terminal-theme {
-        background-color: #1a0c2e;
-        color: #e0d0ff;
-        font-family: 'Courier New', Courier, monospace;
+    .dash-wrapper {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem 1rem;
+        gap: 2.5rem;
     }
 
-    .border-purple {
-        border: 1px solid #6f42c1;
+    .dash-hero {
+        text-align: center;
     }
 
-    .online-indicator {
-        height: 10px;
-        width: 10px;
-        background-color: #28a745;
-        border-radius: 50%;
-        display: inline-block;
+    .dash-logo {
+        font-size: 3rem;
+        background: linear-gradient(135deg, #7c3aed, #06d6fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+        filter: drop-shadow(0 0 20px rgba(124, 58, 237, 0.6));
+    }
+
+    .dash-title {
+        font-family: 'Inter', sans-serif;
+        font-size: clamp(1.6rem, 5vw, 2.8rem);
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        margin: 0 0 0.5rem;
+    }
+
+    .dash-subtitle {
+        font-family: 'Inter', sans-serif;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        letter-spacing: 0.05em;
+        margin: 0;
+    }
+
+    .dash-cards {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .dash-card {
+        padding: 1.6rem 2rem;
+        min-width: 200px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .dash-card-icon {
+        font-size: 1.6rem;
+        line-height: 1;
+    }
+
+    .dash-card-label {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        color: var(--text-dim);
+        text-transform: uppercase;
+    }
+
+    .dash-card-value {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #a855f7, #f472b6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.5));
+    }
+
+    .dash-action {
+        margin-top: 0.5rem;
+    }
+
+    .dash-footer {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.72rem;
+        color: var(--text-dim);
+        letter-spacing: 0.06em;
+        margin-top: 1rem;
+    }
+
+    @@media (max-width: 600px) {
+        .dash-cards { flex-direction: column; align-items: center; }
+        .dash-card { min-width: 280px; }
     }
 </style>
-
-<div class="container-fluid terminal-theme vh-100 d-flex flex-column justify-content-center align-items-center">
-    <div class="text-center">
-        <h1 class="display-4 mb-5">WITAJ W SYSTEMIE ANALIZY EBARTNET</h1>
-    </div>
-
-    <div class="row mb-5">
-        <div class="col-md-4">
-            <div class="card bg-dark border-purple text-white">
-                <div class="card-body">
-                    <h5 class="card-title">STATUS SYSTEMU</h5>
-                    <p class="card-text">Online <span class="online-indicator"></span></p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-dark border-purple text-white">
-                <div class="card-body">
-                    <h5 class="card-title">MODEL AI</h5>
-                    <p class="card-text">Gemini 2.5 Flash (aktywny)</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-dark border-purple text-white">
-                <div class="card-body">
-                    <h5 class="card-title">STATYSTYKI</h5>
-                    <p class="card-text">Przeanalizowano: @CounterService.TotalAnalyses</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="text-center">
-        <a href="/analyzer" class="btn btn-outline-primary btn-lg p-5">URUCHOM TERMINAL ANALITYCZNY</a>
-    </div>
-</div>
 
 @code {
     protected override void OnInitialized()

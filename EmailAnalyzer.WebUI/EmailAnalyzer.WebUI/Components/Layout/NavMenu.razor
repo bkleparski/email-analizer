@@ -1,6 +1,6 @@
 <div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">EBARTNET</a>
+    <div class="container-fluid nav-brand-wrap">
+        <a class="navbar-brand nav-brand gradient-text" href="">⬡ EBARTNET</a>
     </div>
 </div>
 
@@ -8,22 +8,83 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
+
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
+            <NavLink class="nav-link nav-cosmic" href="" Match="NavLinkMatch.All">
+                <span class="nav-icon">⬡</span> Dashboard
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="analyzer">
-                <span class="bi bi-robot-nav-menu" aria-hidden="true"></span> Analizator AI
+            <NavLink class="nav-link nav-cosmic" href="analyzer">
+                <span class="nav-icon">◈</span> Analizator AI
             </NavLink>
         </div>
 
-        <div class="nav-item px-3" style="margin-top: auto;">
-            <a class="nav-link" href="/account/logout">
-                <span aria-hidden="true" style="margin-right: 0.75rem;">⏻</span> Wyloguj
+        <div class="nav-divider"></div>
+
+        <div class="nav-item px-3">
+            <a class="nav-link nav-cosmic nav-logout" href="/account/logout">
+                <span class="nav-icon">⏻</span> Wyloguj
             </a>
         </div>
+
     </nav>
 </div>
+
+<style>
+    .nav-brand {
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        letter-spacing: 0.12em !important;
+    }
+
+    .nav-cosmic {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        color: var(--text-muted) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.6rem !important;
+        border-radius: 8px !important;
+        transition: color 0.2s, background 0.2s, box-shadow 0.2s !important;
+        letter-spacing: 0.02em !important;
+    }
+
+    .nav-cosmic:hover {
+        color: var(--text) !important;
+        background: rgba(124, 58, 237, 0.12) !important;
+        box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.2) !important;
+        text-decoration: none !important;
+    }
+
+    .nav-cosmic.active {
+        color: #fff !important;
+        background: rgba(124, 58, 237, 0.2) !important;
+        box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.4),
+                    0 0 12px rgba(124, 58, 237, 0.2) !important;
+    }
+
+    .nav-icon {
+        font-size: 1rem;
+        opacity: 0.8;
+    }
+
+    .nav-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 0.5rem 1rem;
+    }
+
+    .nav-logout {
+        color: var(--text-dim) !important;
+    }
+
+    .nav-logout:hover {
+        color: #f87171 !important;
+        background: rgba(244, 63, 94, 0.08) !important;
+        box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.2) !important;
+    }
+</style>
