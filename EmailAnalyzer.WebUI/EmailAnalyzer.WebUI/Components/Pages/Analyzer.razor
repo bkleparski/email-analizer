@@ -388,61 +388,11 @@
         font-family: 'Inter', sans-serif; font-weight: 700;
     }
 
-    /* ── Assistant bubble ── */
+    /* ── Assistant bubble — style bazowe w app.css (global), tu tylko layout ── */
     .chat-assistant-bubble {
-        background: var(--color-chat-ai-bg);
-        border: 1px solid var(--color-chat-ai-border);
-        border-radius: 4px 16px 16px 16px;
-        padding: .9rem 1.1rem;
-        flex: 1; min-width: 0;
-        font-family: 'Inter', sans-serif;
-        font-size: .85rem;
-        color: var(--color-chat-ai-text);
-        line-height: 1.7;
+        flex: 1;
+        min-width: 0;
     }
-
-    .chat-assistant-bubble p { margin: .25rem 0; }
-    .chat-assistant-bubble ul, .chat-assistant-bubble ol { padding-left: 1.2rem; margin: .3rem 0; }
-    .chat-assistant-bubble li { margin: .15rem 0; color: var(--text-muted); }
-
-    .chat-assistant-bubble h1, .chat-assistant-bubble h2, .chat-assistant-bubble h3 {
-        font-family: 'Inter', sans-serif; font-weight: 600;
-        color: var(--primary-light);
-        border-bottom: 1px solid var(--border);
-        padding-bottom: .25rem; margin: .9rem 0 .4rem;
-    }
-
-    .chat-assistant-bubble table {
-        width: 100%; border-collapse: collapse;
-        margin: .65rem 0; font-size: .8rem;
-    }
-
-    .chat-assistant-bubble th, .chat-assistant-bubble td {
-        border: 1px solid var(--border);
-        padding: 5px 9px; text-align: left;
-        color: var(--text-muted);
-    }
-
-    .chat-assistant-bubble th {
-        background: rgba(124,58,237,.12);
-        color: #a5b4fc; font-weight: 600;
-    }
-
-    .chat-assistant-bubble strong { color: #67e8f9; }
-    .chat-assistant-bubble code {
-        background: rgba(124,58,237,.18);
-        padding: 1px 5px; border-radius: 3px;
-        font-family: var(--font-mono); font-size: .83em;
-        color: #c4b5fd;
-    }
-
-    /* Light mode — tabele i tekst w bąbelku AI */
-    :global(html.light-mode) .chat-assistant-bubble th { background: rgba(124,58,237,.08); color: #6d28d9; }
-    :global(html.light-mode) .chat-assistant-bubble strong { color: #0891b2; }
-    :global(html.light-mode) .chat-assistant-bubble code { background: rgba(124,58,237,.1); color: #7c3aed; }
-    :global(html.light-mode) .chat-assistant-bubble h1,
-    :global(html.light-mode) .chat-assistant-bubble h2,
-    :global(html.light-mode) .chat-assistant-bubble h3 { color: #7c3aed; }
 
     /* ── Loading bubble ── */
     .chat-loading-bubble {
