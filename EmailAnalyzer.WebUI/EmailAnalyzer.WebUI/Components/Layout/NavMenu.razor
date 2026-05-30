@@ -127,15 +127,30 @@
     {
         if (firstRender)
         {
-            var theme = await JS.InvokeAsync<string>("getTheme");
-            _isDark = theme != "light";
-            StateHasChanged();
+            try
+            {
+                var theme = await JS.InvokeAsync<string>("getTheme", timeout: TimeSpan.FromSeconds(5));
+                _isDark = theme != "light";
+                StateHasChanged();
+            }
+            catch
+            {
+                // JS niedostępny podczas SSR pre-renderingu — ignorujemy
+            }
         }
     }
 
     private async Task ToggleTheme()
     {
-        var newTheme = await JS.InvokeAsync<string>("toggleTheme");
-        _isDark = newTheme != "light";
+        try
+        {
+            var newTheme = await JS.InvokeAsync<string>("toggleTheme", timeout: TimeSpan.FromSeconds(5));
+            _isDark = newTheme != "light";
+        }
+        catch
+        {
+            // Fallback — przełącz lokalnie
+            _isDark = !_isDark;
+        }
     }
 }
